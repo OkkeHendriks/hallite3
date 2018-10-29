@@ -18,6 +18,10 @@ namespace hlt {
         { Direction::NORTH, Direction::SOUTH, Direction::EAST, Direction::WEST }
     };
 
+    static const std::vector<Direction> ALL_DIRECTIONS = {
+        { Direction::NORTH, Direction::SOUTH, Direction::EAST, Direction::WEST, Direction::STILL}
+    };
+
     static Direction invert_direction(Direction direction) {
         switch (direction) {
             case Direction::NORTH:

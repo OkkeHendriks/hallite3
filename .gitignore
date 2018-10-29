@@ -1,7 +1,9 @@
 MyBot
 Makefile
+build
 *.hlt
 *.log
+*.flog
 *~
 *.pyc
 *.pyo
@@ -9,3 +11,4 @@ __pycache__/
 *.class
 *.ipr
 *.iws
+*.zip

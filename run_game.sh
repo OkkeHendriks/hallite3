@@ -8,4 +8,4 @@ cd build && cmake ../
 make -j
 cd ..
 
-./halite --replay-directory replays/ -vvv --width 32 --height 32 "build/MyBot" "build/MyBot"
+exec ./halite --replay-directory replays/ -vvv --width 32 --height 32 "build/MyBot" "build/MyBot"

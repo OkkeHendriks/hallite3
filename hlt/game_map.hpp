@@ -4,6 +4,7 @@
 #include "map_cell.hpp"
 
 #include <vector>
+#include <algorithm>
 
 namespace hlt
 {
@@ -14,25 +15,25 @@ struct GameMap
     int nrCells;
     Halite averageHallite;
     Halite totalHallite;
-    std::vector<std::vector<MapCell>> cells;
+    std::vector<std::vector<std::shared_ptr<MapCell>>> cells;
 
-    MapCell *at(const Position &position)
+    std::shared_ptr<MapCell> at(const Position &position)
     {
         Position normalized = normalize(position);
-        return &cells[normalized.y][normalized.x];
+        return cells[normalized.y][normalized.x];
     }
 
-    MapCell *at(const Entity &entity)
+    std::shared_ptr<MapCell> at(const Entity &entity)
     {
         return at(entity.position);
     }
 
-    MapCell *at(const Entity *entity)
+    std::shared_ptr<MapCell> at(const Entity *entity)
     {
         return at(entity->position);
     }
 
-    MapCell *at(const std::shared_ptr<Entity> &entity)
+    std::shared_ptr<MapCell> at(const std::shared_ptr<Entity> &entity)
     {
         return at(entity->position);
     }
@@ -51,7 +52,13 @@ struct GameMap
         return toroidal_dx + toroidal_dy;
     }
 
-    Position normalize(const Position &position)
+    void normalize(Position& position)
+    {
+        position.x = ((position.x % width) + width) % width;
+        position.y = ((position.y % height) + height) % height;
+    }
+
+    Position normalize(const Position& position)
     {
         const int x = ((position.x % width) + width) % width;
         const int y = ((position.y % height) + height) % height;
@@ -190,7 +197,7 @@ struct GameMap
         return possible_moves;
     }
 
-    Direction naive_navigate(std::shared_ptr<Ship> &ship, const Position &destination)
+    Direction naive_navigate(std::shared_ptr<Ship> &ship, const Position& destination)
     {
         // get_unsafe_moves normalizes for us
         if (ship->position == destination)
@@ -210,6 +217,42 @@ struct GameMap
 
         return Direction::STILL;
     }
+
+    void navigate(const std::vector<std::shared_ptr<Ship>>& ships, const Position& destination)
+    {
+        std::vector<std::shared_ptr<Ship>> shipsToPlan(ships.size());
+        for(auto const& ship : ships)
+        {
+            if(ship->destination == destination)
+                return;
+            shipsToPlan.emplace_back(ship);
+        }
+        log::log("Path planning for " + std::to_string(shipsToPlan.size()) + " ships.");
+        
+        int maxSteps = 20;
+        // For now no multi-robot planning, simply plan one by one
+        for(const auto& ship : shipsToPlan)
+        {
+            const std::shared_ptr<MapCell>& start = at(ship->position);
+            const std::shared_ptr<MapCell>& cur = start;
+            const std::shared_ptr<MapCell>& dest = at(ship->destination);
+            std::vector<const std::shared_ptr<MapCell>> openPositions(width*height);
+            openPositions.push_back(start);
+            while(not openPositions.empty() || start == dest)
+            {
+                std::sort(openPositions.begin(), openPositions.end());
+                const auto& openPos = openPositions.front();
+                
+                for(const auto& dir : ALL_DIRECTIONS)
+                {
+                    openPos->directional_offset(dir);
+                }
+
+                openPositions.erase(openPositions.);
+            }
+        }
+       
+    }   
 
     void _update();
     static std::unique_ptr<GameMap> _generate();

@@ -13,6 +13,7 @@ hlt::Game::Game() : turn_number(0) {
     input >> num_players >> my_id;
 
     log::open(my_id);
+    flog::open(my_id);
 
     for (int i = 0; i < num_players; ++i) {
         players.push_back(Player::_generate());
@@ -26,6 +27,7 @@ void hlt::Game::ready(const std::string& name) {
 }
 
 void hlt::Game::update_frame() {
+    prevTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
     hlt::get_sstream() >> turn_number;
     log::log("=============== TURN " + std::to_string(turn_number) + " ================");
 
@@ -61,5 +63,8 @@ bool hlt::Game::end_turn(const std::vector<hlt::Command>& commands) {
         std::cout << command << ' ';
     }
     std::cout << std::endl;
+    auto time = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count() - prevTime;
+    log::log("TURNTIME " + std::to_string(turn_number) + ": " + std::to_string(time) + "ms");
+    flog::next_turn();
     return std::cout.good();
 }

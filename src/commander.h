@@ -7,6 +7,7 @@
 #include "hlt/game.hpp"
 #include "hlt/constants.hpp"
 #include "hlt/log.hpp"
+#include "hlt/flog.hpp"
 
 using namespace hlt;
 using std::to_string;
@@ -32,16 +33,17 @@ class Commander
         // Determine to mine positions
         double factor = 2.0;
         std::vector<Position> minePositions;
-        std::vector<std::vector<MapCell>> cells = mMap->cells;
+        std::vector<std::vector<std::shared_ptr<MapCell>>> cells = mMap->cells;
         for (const auto &col_iterator : cells)
         {
             const auto &col = col_iterator;
             for (const auto &row_iterator : col)
             {
                 const auto &cell = row_iterator;  
-                if (cell.halite > mMap->averageHallite * factor)
+                if (cell->halite > mMap->averageHallite * factor)
                 {
-                    minePositions.emplace_back(cell.position);
+                    minePositions.emplace_back(cell->position);
+                    flog::flog(cell->position.x, cell->position.y, std::to_string(cell->halite));
                 }
             }
         }
